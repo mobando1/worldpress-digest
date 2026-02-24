@@ -92,6 +92,23 @@ async function startWorker() {
     }
   });
 
+  // ─── Daily Digest Job ───────────────────────────────────
+  // Runs every day at 7 AM UTC: generate AI digest and send to subscribers
+  cron.schedule("0 7 * * *", async () => {
+    console.log("[Worker] Generating daily digest...");
+    try {
+      const { DigestService } = await import("../src/services/DigestService");
+      const edition = await DigestService.generateDailyDigest();
+      console.log(`[Worker] Digest generated: ${edition.subject}`);
+
+      const { EmailService } = await import("../src/services/EmailService");
+      const sentCount = await EmailService.sendDigest(edition);
+      console.log(`[Worker] Digest sent to ${sentCount} subscribers`);
+    } catch (error) {
+      console.error("[Worker] Digest generation failed:", error);
+    }
+  });
+
   // ─── Cleanup Job ────────────────────────────────────────
   // Runs daily at 3 AM: prune old fetch logs and read notifications
   cron.schedule("0 3 * * *", async () => {
@@ -129,6 +146,7 @@ async function startWorker() {
   console.log("[Worker] Cron jobs scheduled:");
   console.log("  - Fetch: every 10 minutes");
   console.log("  - Notifications: every 5 minutes");
+  console.log("  - Digest: daily at 7 AM UTC");
   console.log("  - Cleanup: daily at 3 AM");
 }
 

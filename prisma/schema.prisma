@@ -47,6 +47,20 @@ enum NotificationStatus {
   READ
 }
 
+enum DigestStatus {
+  GENERATING
+  READY
+  SENDING
+  SENT
+  FAILED
+}
+
+enum SubscriberStatus {
+  PENDING
+  ACTIVE
+  UNSUBSCRIBED
+}
+
 // ─── MODELS ─────────────────────────────────────────────
 
 model User {
@@ -201,4 +215,38 @@ model FetchLog {
   @@index([sourceId, startedAt(sort: Desc)])
   @@index([status])
   @@map("fetch_logs")
+}
+
+model DigestEdition {
+  id          String       @id @default(uuid())
+  date        DateTime     @unique @db.Date
+  subject     String
+  htmlContent String       @db.Text
+  jsonContent Json         @default("{}")
+  status      DigestStatus @default(GENERATING)
+  articleIds  String[]     @default([])
+  sentCount   Int          @default(0)
+  generatedAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([date(sort: Desc)])
+  @@index([status])
+  @@map("digest_editions")
+}
+
+model Subscriber {
+  id           String           @id @default(uuid())
+  email        String           @unique
+  name         String?
+  status       SubscriberStatus @default(PENDING)
+  confirmToken String?          @unique
+  preferences  Json             @default("{}")
+  confirmedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([status])
+  @@index([confirmToken])
+  @@map("subscribers")
 }

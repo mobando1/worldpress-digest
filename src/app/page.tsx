@@ -4,6 +4,7 @@ import { HeroArticle } from "@/components/home/HeroArticle";
 import { SecondaryHeadlines } from "@/components/home/SecondaryHeadlines";
 import { CategorySection } from "@/components/home/CategorySection";
 import { TrendingColumn } from "@/components/home/TrendingColumn";
+import { DigestPromo } from "@/components/home/DigestPromo";
 import { EmptyState } from "@/components/shared/EmptyState";
 
 export const dynamic = "force-dynamic";
@@ -126,8 +127,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Separator */}
-      <hr className="my-8 border-[var(--color-border-primary)]" />
+      {/* Digest promo */}
+      <DigestPromo />
 
       {/* Category sections + Trending sidebar */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
