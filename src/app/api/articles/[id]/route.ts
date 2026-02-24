@@ -14,7 +14,7 @@ export async function GET(
     // getById throws AppError(404) if not found
     const article = await articleService.getById(id);
 
-    return NextResponse.json(article);
+    return NextResponse.json({ data: article });
   } catch (error) {
     return errorResponse(error);
   }

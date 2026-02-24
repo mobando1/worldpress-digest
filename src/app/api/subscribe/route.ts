@@ -4,6 +4,17 @@ import { EmailService } from "@/services/EmailService";
 import { errorResponse } from "@/lib/errors";
 import crypto from "crypto";
 
+async function trySendConfirmation(subscriber: { id: string; email: string; name: string | null; confirmToken: string | null }) {
+  try {
+    await EmailService.sendConfirmation(subscriber as Parameters<typeof EmailService.sendConfirmation>[0]);
+  } catch (err) {
+    console.error(
+      `[Subscribe] Failed to send confirmation email to ${subscriber.email}:`,
+      err instanceof Error ? err.message : err
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -29,8 +40,8 @@ export async function POST(request: NextRequest) {
       }
 
       if (existing.status === "PENDING") {
-        // Resend confirmation
-        await EmailService.sendConfirmation(existing);
+        // Resend confirmation (non-blocking)
+        trySendConfirmation(existing);
         return NextResponse.json({
           message: "Check your email to confirm your subscription.",
         });
@@ -47,7 +58,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await EmailService.sendConfirmation(updated);
+      trySendConfirmation(updated);
       return NextResponse.json({
         message: "Check your email to confirm your subscription.",
       });
@@ -64,7 +75,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await EmailService.sendConfirmation(subscriber);
+    trySendConfirmation(subscriber);
 
     return NextResponse.json({
       message: "Check your email to confirm your subscription.",
