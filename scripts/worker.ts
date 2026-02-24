@@ -1,3 +1,4 @@
+import http from "node:http";
 import cron from "node-cron";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -113,6 +114,16 @@ async function startWorker() {
       `[Worker] Cleanup: ${deletedLogs.count} logs, ` +
         `${deletedNotifications.count} notifications removed`
     );
+  });
+
+  // ─── Health Check Server ──────────────────────────────
+  // Railway requires a listening port to keep the container alive
+  const PORT = process.env.PORT || 3001;
+  http.createServer((_req, res) => {
+    res.writeHead(200);
+    res.end("ok");
+  }).listen(PORT, () => {
+    console.log(`[Worker] Health check on port ${PORT}`);
   });
 
   console.log("[Worker] Cron jobs scheduled:");
