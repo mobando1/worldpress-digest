@@ -20,6 +20,7 @@ async function startWorker() {
   console.log(`[Worker] Time: ${new Date().toISOString()}`);
 
   const { FetchService } = await loadServices();
+  const fetchService = new FetchService();
 
   // ─── Primary Fetch Job ─────────────────────────────────
   // Runs every 10 minutes
@@ -28,7 +29,7 @@ async function startWorker() {
     console.log(`[Worker][${jobId}] Starting scheduled fetch...`);
 
     try {
-      const results = await FetchService.fetchAll();
+      const results = await fetchService.fetchAll();
 
       const totalNew = results.reduce((sum, r) => sum + r.articlesNew, 0);
       const totalFound = results.reduce((sum, r) => sum + r.articlesFound, 0);
