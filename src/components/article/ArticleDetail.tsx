@@ -3,6 +3,10 @@ import { ExternalLink } from "lucide-react";
 import { CategoryBadge } from "@/components/shared/CategoryBadge";
 import { ArticleMeta } from "./ArticleMeta";
 import { ArticleCard } from "./ArticleCard";
+import { ArticleContent } from "./ArticleContent";
+import { ArticleSpeaker } from "./ArticleSpeaker";
+import { ArticleInsights } from "./ArticleInsights";
+import { ArticleChat } from "./ArticleChat";
 
 interface ArticleDetailProps {
   article: {
@@ -32,6 +36,7 @@ interface ArticleDetailProps {
 
 export function ArticleDetail({ article, relatedArticles = [] }: ArticleDetailProps) {
   return (
+  <>
     <article className="max-w-[720px] mx-auto">
       {article.category && (
         <CategoryBadge
@@ -65,20 +70,31 @@ export function ArticleDetail({ article, relatedArticles = [] }: ArticleDetailPr
         </figure>
       )}
 
+      {/* Speaker */}
+      <div className="mt-6">
+        <ArticleSpeaker
+          title={article.title}
+          summary={article.summary}
+          content={article.content}
+        />
+      </div>
+
       {/* Summary / excerpt */}
       {article.summary && (
         <div className="mt-8">
-          <p className="text-lg leading-relaxed text-muted-foreground">
-            {article.summary}
-          </p>
+          <ArticleContent
+            content={article.summary}
+            className="text-lg text-muted-foreground"
+          />
         </div>
       )}
 
       {article.content && article.content !== article.summary && (
         <div className="mt-4">
-          <p className="text-base leading-relaxed text-foreground">
-            {article.content}
-          </p>
+          <ArticleContent
+            content={article.content}
+            className="text-base text-foreground"
+          />
         </div>
       )}
 
@@ -96,6 +112,11 @@ export function ArticleDetail({ article, relatedArticles = [] }: ArticleDetailPr
             {article.source.name}
           </a>
         </div>
+      </div>
+
+      {/* AI Insights */}
+      <div className="mt-8">
+        <ArticleInsights articleId={article.id} />
       </div>
 
       {/* Tags */}
@@ -127,5 +148,9 @@ export function ArticleDetail({ article, relatedArticles = [] }: ArticleDetailPr
         </section>
       )}
     </article>
+
+    {/* Floating chat widget */}
+    <ArticleChat articleId={article.id} articleTitle={article.title} />
+  </>
   );
 }
