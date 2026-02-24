@@ -5,7 +5,7 @@ import type {
   Article,
   Notification,
   NotificationStatus,
-} from "@/generated/prisma";
+} from "@/generated/prisma/client";
 
 // ---------------------------------------------------------------------------
 // Types

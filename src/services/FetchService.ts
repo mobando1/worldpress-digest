@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import type { Source, SourceType } from "@/generated/prisma";
+import type { Source, SourceType } from "@/generated/prisma/client";
 import { RSSAdapter } from "./adapters/RSSAdapter";
 import { APIAdapter } from "./adapters/APIAdapter";
 import { ScrapeAdapter } from "./adapters/ScrapeAdapter";

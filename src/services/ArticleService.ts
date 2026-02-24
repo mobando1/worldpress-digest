@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { AppError } from "@/lib/errors";
-import type { Article, Source } from "@/generated/prisma";
+import type { Article, Source } from "@/generated/prisma/client";
 import type { RawArticle } from "./adapters/RSSAdapter";
 import { BreakingDetector } from "./BreakingDetector";
 

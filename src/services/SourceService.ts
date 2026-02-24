@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { AppError } from "@/lib/errors";
-import type { Prisma, Source, SourceStatus } from "@/generated/prisma";
+import type { Prisma, Source, SourceStatus } from "@/generated/prisma/client";
 
 // ---------------------------------------------------------------------------
 // Types
