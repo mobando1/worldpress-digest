@@ -4,6 +4,7 @@ import { SourceService } from "@/services/SourceService";
 import { updateSourceSchema } from "@/lib/validators";
 import { AppError, errorResponse } from "@/lib/errors";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 
 export async function PUT(
   request: NextRequest,
@@ -23,9 +24,11 @@ export async function PUT(
     const data = updateSourceSchema.parse(body);
 
     // Transform rssUrl empty string to null if present
+    const { config, ...rest } = data;
     const updateData = {
-      ...data,
-      ...(data.rssUrl !== undefined && { rssUrl: data.rssUrl || null }),
+      ...rest,
+      ...(rest.rssUrl !== undefined && { rssUrl: rest.rssUrl || null }),
+      ...(config !== undefined && { config: config as Prisma.InputJsonValue }),
     };
 
     const source = await SourceService.update(id, updateData);

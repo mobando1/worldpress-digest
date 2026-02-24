@@ -25,17 +25,18 @@ export async function GET(request: NextRequest) {
 
     // If a search query is provided, use the search service
     if (filters.search) {
-      const result = await SearchService.search({
-        query: filters.search,
-        categoryId: filters.categoryId,
-        sourceId: filters.sourceId,
-        language: filters.language,
-        country: filters.country,
-        fromDate: filters.fromDate,
-        toDate: filters.toDate,
-        page: filters.page,
-        limit: filters.limit,
-      });
+      const result = await SearchService.search(
+        filters.search,
+        {
+          sourceId: filters.sourceId,
+          language: filters.language,
+          country: filters.country,
+          from: filters.fromDate,
+          to: filters.toDate,
+        },
+        filters.page,
+        filters.limit,
+      );
 
       return NextResponse.json(result);
     }

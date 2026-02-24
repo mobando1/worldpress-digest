@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/middleware";
 import { SourceService } from "@/services/SourceService";
 import { createSourceSchema } from "@/lib/validators";
 import { errorResponse } from "@/lib/errors";
+import type { Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,10 +42,11 @@ export async function POST(request: NextRequest) {
     const data = createSourceSchema.parse(body);
 
     // Transform rssUrl empty string to null for DB storage
+    const { config, ...rest } = data;
     const sourceData = {
-      ...data,
+      ...rest,
       rssUrl: data.rssUrl || null,
-      config: data.config ?? {},
+      config: (config ?? {}) as Prisma.InputJsonValue,
     };
 
     const source = await SourceService.create(sourceData);

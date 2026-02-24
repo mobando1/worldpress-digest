@@ -1,4 +1,4 @@
-import type { Source } from "@/generated/prisma/client";
+import type { Source } from "@prisma/client";
 import type { RawArticle } from "./RSSAdapter";
 
 // ---------------------------------------------------------------------------

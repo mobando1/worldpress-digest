@@ -1,5 +1,5 @@
 import Parser from "rss-parser";
-import type { Source } from "@/generated/prisma/client";
+import type { Source } from "@prisma/client";
 
 // ---------------------------------------------------------------------------
 // Shared interface for raw articles coming from any adapter

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { User } from "@/generated/prisma/client";
+import { User } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { verifyToken } from "@/lib/auth";
 import { AppError } from "@/lib/errors";

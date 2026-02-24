@@ -35,7 +35,7 @@ export const createSourceSchema = z.object({
   region: z.string().optional(),
   language: z.string().default("en"),
   category: z.string().optional(),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type CreateSourceInput = z.infer<typeof createSourceSchema>;
@@ -58,7 +58,7 @@ export const updateSourceSchema = z.object({
   category: z.string().optional().nullable(),
   enabled: z.boolean().optional(),
   status: z.enum(["ACTIVE", "PAUSED", "ERROR", "DISABLED"]).optional(),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type UpdateSourceInput = z.infer<typeof updateSourceSchema>;

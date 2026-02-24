@@ -1,7 +1,9 @@
 import cron from "node-cron";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 // We import dynamically to allow the services to use the @/ alias
 // In the worker context, we use direct relative imports
