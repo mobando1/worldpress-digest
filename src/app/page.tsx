@@ -1,65 +1,151 @@
-import Image from "next/image";
+import { BreakingBanner } from "@/components/home/BreakingBanner";
+import { EditionDate } from "@/components/home/EditionDate";
+import { HeroArticle } from "@/components/home/HeroArticle";
+import { SecondaryHeadlines } from "@/components/home/SecondaryHeadlines";
+import { CategorySection } from "@/components/home/CategorySection";
+import { TrendingColumn } from "@/components/home/TrendingColumn";
+import { EmptyState } from "@/components/shared/EmptyState";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+interface ArticleData {
+  id: string;
+  title: string;
+  summary: string | null;
+  imageUrl: string | null;
+  publishedAt: string | null;
+  breakingScore: number;
+  source: { name: string };
+  category?: { name: string; slug: string; color: string } | null;
+}
+
+async function getArticles(): Promise<ArticleData[]> {
+  try {
+    const res = await fetch(`${APP_URL}/api/articles?limit=50`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  } catch {
+    return [];
+  }
+}
+
+async function getBreaking(): Promise<ArticleData[]> {
+  try {
+    const res = await fetch(`${APP_URL}/api/articles/breaking?limit=5`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  } catch {
+    return [];
+  }
+}
+
+const CATEGORY_CONFIG: Record<string, { name: string; color: string }> = {
+  world: { name: "World", color: "#2563EB" },
+  business: { name: "Business", color: "#059669" },
+  technology: { name: "Technology", color: "#7C3AED" },
+  politics: { name: "Politics", color: "#DC2626" },
+  science: { name: "Science", color: "#0891B2" },
+  culture: { name: "Culture", color: "#D97706" },
+  sports: { name: "Sports", color: "#EA580C" },
+};
+
+export default async function HomePage() {
+  const [articles, breakingArticles] = await Promise.all([
+    getArticles(),
+    getBreaking(),
+  ]);
+
+  if (articles.length === 0) {
+    return (
+      <div className="animate-[fade-in_0.3s_ease-out]">
+        <EditionDate />
+        <EmptyState
+          title="No articles yet"
+          description="The news pipeline hasn't run yet. Trigger a manual fetch from the admin panel or wait for the scheduled job."
+          action={{ label: "Go to Admin", href: "/admin" }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+      </div>
+    );
+  }
+
+  // Hero = first article (preferring one with an image)
+  const heroArticle = articles.find((a) => a.imageUrl) || articles[0];
+  const secondaryArticles = articles
+    .filter((a) => a.id !== heroArticle.id)
+    .slice(0, 4);
+
+  // Group remaining articles by category
+  const categorized: Record<string, ArticleData[]> = {};
+  for (const article of articles) {
+    if (article.id === heroArticle.id) continue;
+    const slug = article.category?.slug || "world";
+    if (!categorized[slug]) categorized[slug] = [];
+    if (categorized[slug].length < 3) {
+      categorized[slug].push(article);
+    }
+  }
+
+  // Trending = top articles by breakingScore
+  const trending = [...articles]
+    .sort((a, b) => b.breakingScore - a.breakingScore)
+    .slice(0, 10);
+
+  // Top breaking for banner
+  const topBreaking = breakingArticles[0];
+
+  return (
+    <div className="animate-[fade-in_0.3s_ease-out]">
+      {/* Breaking banner */}
+      {topBreaking && (
+        <div className="-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 mb-6">
+          <BreakingBanner
+            headline={topBreaking.title}
+            articleId={topBreaking.id}
+            timestamp={topBreaking.publishedAt || new Date().toISOString()}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      <EditionDate />
+
+      {/* Hero section */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        <div className="lg:col-span-8">
+          <HeroArticle article={heroArticle} />
         </div>
-      </main>
+        <div className="lg:col-span-4">
+          <SecondaryHeadlines articles={secondaryArticles} />
+        </div>
+      </section>
+
+      {/* Separator */}
+      <hr className="my-8 border-[var(--color-border-primary)]" />
+
+      {/* Category sections + Trending sidebar */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-9 space-y-2">
+          {Object.entries(CATEGORY_CONFIG).map(([slug, config]) => {
+            const catArticles = categorized[slug];
+            if (!catArticles || catArticles.length === 0) return null;
+            return (
+              <CategorySection
+                key={slug}
+                category={{ ...config, slug }}
+                articles={catArticles}
+              />
+            );
+          })}
+        </div>
+        <div className="lg:col-span-3">
+          <TrendingColumn articles={trending} />
+        </div>
+      </section>
     </div>
   );
 }

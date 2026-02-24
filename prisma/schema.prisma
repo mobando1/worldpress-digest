@@ -1,0 +1,205 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── ENUMS ──────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum SourceType {
+  RSS
+  API
+  SCRAPE
+}
+
+enum SourceStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  DISABLED
+}
+
+enum FetchLogStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum NotificationChannel {
+  EMAIL
+  PUSH
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+// ─── MODELS ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         UserRole @default(USER)
+  preferences  Json     @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alertRules    AlertRule[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Source {
+  id            String       @id @default(uuid())
+  name          String
+  slug          String       @unique
+  url           String
+  rssUrl        String?
+  type          SourceType   @default(RSS)
+  region        String?
+  language      String       @default("en")
+  category      String?
+  enabled       Boolean      @default(true)
+  status        SourceStatus @default(ACTIVE)
+  lastFetchedAt DateTime?
+  config        Json         @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles  Article[]
+  fetchLogs FetchLog[]
+
+  @@index([enabled, status])
+  @@index([type])
+  @@index([region])
+  @@map("sources")
+}
+
+model Category {
+  id        String @id @default(uuid())
+  name      String @unique
+  slug      String @unique
+  color     String @default("#6B7280")
+  icon      String @default("newspaper")
+  sortOrder Int    @default(0)
+
+  articles   Article[]
+  alertRules AlertRule[]
+
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+model Article {
+  id            String    @id @default(uuid())
+  title         String
+  summary       String?   @db.Text
+  content       String?   @db.Text
+  author        String?
+  publishedAt   DateTime?
+  fetchedAt     DateTime  @default(now())
+  sourceUrl     String    @unique
+  imageUrl      String?
+  language      String    @default("en")
+  country       String?
+  tags          String[]  @default([])
+  breakingScore Int       @default(0)
+  dedupHash     String    @unique
+  metadata      Json      @default("{}")
+
+  sourceId   String
+  source     Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+
+  @@index([publishedAt(sort: Desc)])
+  @@index([sourceId, publishedAt(sort: Desc)])
+  @@index([categoryId, publishedAt(sort: Desc)])
+  @@index([breakingScore(sort: Desc), publishedAt(sort: Desc)])
+  @@index([language])
+  @@index([country])
+  @@index([fetchedAt(sort: Desc)])
+  @@map("articles")
+}
+
+model AlertRule {
+  id               String   @id @default(uuid())
+  name             String
+  keywords         String[] @default([])
+  minBreakingScore Int      @default(0)
+  channels         Json     @default("[]")
+  enabled          Boolean  @default(true)
+
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories Category[]
+
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, enabled])
+  @@map("alert_rules")
+}
+
+model Notification {
+  id      String             @id @default(uuid())
+  channel NotificationChannel
+  status  NotificationStatus @default(PENDING)
+  sentAt  DateTime?
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId   String
+  article     Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  alertRuleId String
+  alertRule   AlertRule @relation(fields: [alertRuleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([alertRuleId])
+  @@map("notifications")
+}
+
+model FetchLog {
+  id            String         @id @default(uuid())
+  startedAt     DateTime       @default(now())
+  completedAt   DateTime?
+  articlesFound Int            @default(0)
+  articlesNew   Int            @default(0)
+  errors        Json           @default("[]")
+  status        FetchLogStatus @default(RUNNING)
+
+  sourceId String
+  source   Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, startedAt(sort: Desc)])
+  @@index([status])
+  @@map("fetch_logs")
+}
