@@ -18,6 +18,7 @@ interface ArticleDetailProps {
     publishedAt: string | null;
     author: string | null;
     sourceUrl: string;
+    language: string;
     tags: string[];
     source: { name: string; url: string };
     category?: { name: string; slug: string; color: string } | null;
@@ -73,9 +74,11 @@ export function ArticleDetail({ article, relatedArticles = [] }: ArticleDetailPr
       {/* Speaker */}
       <div className="mt-6">
         <ArticleSpeaker
+          articleId={article.id}
           title={article.title}
           summary={article.summary}
           content={article.content}
+          language={article.language}
         />
       </div>
 
