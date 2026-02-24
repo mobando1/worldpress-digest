@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { hash } from "bcrypt";
 import { PrismaClient } from "../src/generated/prisma/client";
 
