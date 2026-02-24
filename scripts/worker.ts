@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { PrismaClient } from "../src/generated/prisma";
+import { PrismaClient } from "../src/generated/prisma/client";
 
 const prisma = new PrismaClient();
 
