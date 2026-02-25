@@ -46,24 +46,24 @@ export function ArticleSpeaker({
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const fallbackRef = useRef(false);
 
-  // Check if ElevenLabs TTS is available
+  // Check if ElevenLabs TTS is available (lightweight probe)
   useEffect(() => {
     let cancelled = false;
     async function check() {
       try {
         const res = await fetch(
-          `/api/articles/${articleId}/tts?lang=${lang}`,
-          { method: "HEAD" }
+          `/api/articles/${articleId}/tts?lang=${lang}&check=true`
         );
         if (cancelled) return;
-        if (res.status === 503) {
+        if (res.ok) {
+          fallbackRef.current = false;
+          setTtsAvailable(true);
+        } else {
+          // 503 = not configured, any other error = also fallback
           fallbackRef.current = true;
           setTtsAvailable(
             typeof window !== "undefined" && !!window.speechSynthesis
           );
-        } else {
-          fallbackRef.current = false;
-          setTtsAvailable(true);
         }
       } catch {
         if (cancelled) return;

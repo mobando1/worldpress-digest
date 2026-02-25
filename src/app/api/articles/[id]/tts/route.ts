@@ -58,6 +58,12 @@ export async function GET(
       );
     }
 
+    // Lightweight availability check (no audio generation)
+    const check = request.nextUrl.searchParams.get("check");
+    if (check === "true") {
+      return NextResponse.json({ available: true });
+    }
+
     const article = await prisma.article.findUnique({ where: { id } });
 
     if (!article) {
@@ -107,7 +113,7 @@ export async function GET(
       const errorText = await response.text();
       console.error("[ElevenLabs Error]", response.status, errorText);
       return NextResponse.json(
-        { error: "TTS generation failed" },
+        { error: "TTS generation failed", detail: errorText, elevenLabsStatus: response.status },
         { status: 502 }
       );
     }
